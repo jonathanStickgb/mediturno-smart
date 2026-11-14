@@ -36,6 +36,8 @@ CREATE INDEX IF NOT EXISTS idx_citas_fecha    ON public.citas_medicas (fecha_cit
 --    - N8N inserta usando la service_role key (omite RLS), desde el servidor.
 ALTER TABLE public.citas_medicas ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.citas_medicas FROM anon, authenticated;
+-- Permisos explícitos para N8N (el proyecto no expone tablas nuevas automáticamente)
+GRANT SELECT, INSERT, UPDATE ON public.citas_medicas TO service_role;
 
 -- 3) Vista pública para el panel del frontend --------------------------
 --    Solo expone campos no sensibles: sin síntomas, sin email,
@@ -59,7 +61,9 @@ SELECT
     creado_en
 FROM public.citas_medicas;
 
-GRANT SELECT ON public.citas_publicas TO anon, authenticated;
+-- Solo lectura (se quitan TRUNCATE/TRIGGER/REFERENCES que Supabase otorga por defecto)
+REVOKE ALL ON public.citas_publicas FROM anon, authenticated;
+GRANT SELECT ON public.citas_publicas TO anon, authenticated, service_role;
 
 -- 4) (Opcional) Registro de prueba para verificar ----------------------
 -- INSERT INTO public.citas_medicas

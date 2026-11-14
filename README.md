@@ -72,4 +72,19 @@ Vista `citas_publicas` (la única que lee el frontend con la `anon key`): códig
 
 - Repositorio GitHub: _pendiente_
 - Producción (Vercel): _pendiente_
-- Proyecto Supabase: _pendiente_
+- Proyecto Supabase: https://icmzyztpycwoasxudkjd.supabase.co
+
+## Configuración (frontend)
+
+```js
+const SUPABASE_URL = 'https://icmzyztpycwoasxudkjd.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_hOg4LfjON9-kT2s862kcig_GGmzaiTK'; // clave publicable: segura en el navegador
+const N8N_WEBHOOK_URL = ''; // pendiente (Fase 3)
+```
+
+> La clave **secreta** (`sb_secret_...` / `service_role`) solo se usa en N8N y **nunca** se sube al repositorio.
+
+Verificación de seguridad con la clave publicable:
+- `GET /rest/v1/citas_publicas` → **200** (lectura permitida)
+- `GET /rest/v1/citas_medicas` → **401 permission denied** (datos clínicos protegidos)
+- `POST /rest/v1/citas_medicas` → **401 permission denied** (solo N8N puede insertar)
