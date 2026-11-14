@@ -32,7 +32,8 @@ Tabla `citas_medicas`:
 
 | Campo | Tipo | Descripción |
 |---|---|---|
-| id | UUID (PK) | Identificador / código de cita |
+| id | UUID (PK) | Identificador interno |
+| codigo_cita | VARCHAR(12) | Código legible para el paciente (ej. `MT-A1B2C3`) |
 | paciente_nombre | VARCHAR(120) | Nombre completo |
 | documento_id | VARCHAR(15) | Documento de identidad |
 | email_paciente | VARCHAR(150) | Correo para el comprobante |
@@ -42,6 +43,8 @@ Tabla `citas_medicas`:
 | fecha_cita | DATE | Fecha preferida |
 | estado | VARCHAR(30) | Pendiente / Confirmada / Atendida |
 | creado_en | TIMESTAMPTZ | Fecha de registro |
+
+Vista `citas_publicas` (la única que lee el frontend con la `anon key`): código de cita, nombre abreviado, documento enmascarado, especialidad, nivel de urgencia, prioridad, fecha y estado. **No** expone síntomas ni correo. Script completo en [`supabase/schema.sql`](supabase/schema.sql).
 
 ## Requisitos funcionales
 
