@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediTurno Smart — Triaje Automatizado</title>
+  <meta name="description" content="Portal de agendamiento médico con clasificación automática de urgencia." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f766e'/%3E%3Cpath d='M13 7h6v6h6v6h-6v6h-6v-6H7v-6h6z' fill='white'/%3E%3C/svg%3E" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .spinner { width: 1rem; height: 1rem; border: 2px solid currentColor; border-right-color: transparent; border-radius: 9999px; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2s; } }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+  <!-- Encabezado -->
+  <header class="bg-teal-700 text-white">
+    <div class="max-w-6xl mx-auto px-4 py-5 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-2xl font-bold" aria-hidden="true">+</div>
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold leading-tight">MediTurno Smart</h1>
+        <p class="text-teal-100 text-sm">Agendamiento médico con triaje automatizado</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Aviso de emergencia -->
+  <div class="bg-red-50 border-b border-red-200">
+    <p class="max-w-6xl mx-auto px-4 py-3 text-sm text-red-900">
+      <strong>Importante:</strong> la clasificación de urgencia es orientativa y no reemplaza la valoración médica.
+      Si es una emergencia (dolor en el pecho, dificultad para respirar, pérdida de conciencia o sangrado abundante),
+      llame de inmediato a la línea <strong>123</strong> o acuda al servicio de urgencias.
+    </p>
+  </div>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 grid gap-6 lg:grid-cols-5">
+
+    <!-- ============ Formulario (RF-01, RF-02) ============ -->
+    <section class="lg:col-span-2" aria-labelledby="titulo-form">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+        <h2 id="titulo-form" class="text-lg font-semibold mb-1">Solicitar cita</h2>
+        <p class="text-sm text-slate-600 mb-5">Los campos marcados con <span class="text-red-700">*</span> son obligatorios.</p>
+
+        <form id="form-cita" novalidate class="space-y-4">
+          <div>
+            <label for="paciente_nombre" class="block text-sm font-medium mb-1">Nombre completo <span class="text-red-700">*</span></label>
+            <input id="paciente_nombre" name="paciente_nombre" type="text" autocomplete="name" maxlength="120"
+              class="campo w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-600"
+              aria-describedby="error-paciente_nombre" />
+            <p id="error-paciente_nombre" class="error-msg text-sm text-red-700 mt-1 hidden"></p>
+          </div>
+
+          <div>
+            <label for="documento_id" class="block text-sm font-medium mb-1">Documento de identidad <span class="text-red-700">*</span></label>
+            <input id="documento_id" name="documento_id" type="text" inputmode="numeric" maxlength="10" placeholder="Solo números, 6 a 10 dígitos"
+              class="campo w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-600"
+              aria-describedby="error-documento_id" />
+            <p id="error-documento_id" class="error-msg text-sm text-red-700 mt-1 hidden"></p>
+          </div>
+
+          <div>
+            <label for="email_paciente" class="block text-sm font-medium mb-1">Correo electrónico <span class="text-red-700">*</span></label>
+            <input id="email_paciente" name="email_paciente" type="email" autocomplete="email" maxlength="150" placeholder="nombre@correo.com"
+              class="campo w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-600"
+              aria-describedby="error-email_paciente" />
+            <p id="error-email_paciente" class="error-msg text-sm text-red-700 mt-1 hidden"></p>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="especialidad" class="block text-sm font-medium mb-1">Especialidad <span class="text-red-700">*</span></label>
+              <select id="especialidad" name="especialidad"
+                class="campo w-full rounded-lg border border-slate-300 px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-teal-600"
+                aria-describedby="error-especialidad">
+                <option value="">Seleccione…</option>
+              </select>
+              <p id="error-especialidad" class="error-msg text-sm text-red-700 mt-1 hidden"></p>
+            </div>
+            <div>
+              <label for="fecha_cita" class="block text-sm font-medium mb-1">Fecha preferida <span class="text-red-700">*</span></label>
+              <input id="fecha_cita" name="fecha_cita" type="date"
+                class="campo w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-600"
+                aria-describedby="error-fecha_cita" />
+              <p id="error-fecha_cita" class="error-msg text-sm text-red-700 mt-1 hidden"></p>
+            </div>
+          </div>
+
+          <div>
+            <label for="sintomas_desc" class="block text-sm font-medium mb-1">Describa sus síntomas <span class="text-red-700">*</span></label>
+            <textarea id="sintomas_desc" name="sintomas_desc" rows="4" maxlength="1000"
+              placeholder="¿Qué siente? ¿Desde cuándo? ¿Qué tan intenso es?"
+              class="campo w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-600"
+              aria-describedby="error-sintomas_desc ayuda-sintomas"></textarea>
+            <div class="flex justify-between mt-1">
+              <p id="error-sintomas_desc" class="error-msg text-sm text-red-700 hidden"></p>
+              <p id="ayuda-sintomas" class="text-xs text-slate-500 ml-auto"><span id="contador-sintomas">0</span>/1000</p>
+            </div>
+          </div>
+
+          <button id="btn-enviar" type="submit"
+            class="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold px-4 py-3 transition disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-600">
+            <span id="btn-spinner" class="spinner hidden" aria-hidden="true"></span>
+            <span id="btn-texto">Solicitar cita</span>
+          </button>
+        </form>
+
+        <!-- Estado del envío (Cargando / Éxito / Error) -->
+        <div id="estado-form" class="mt-4 hidden" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ============ Panel de citas (RF-03, RF-06) ============ -->
+    <section class="lg:col-span-3" aria-labelledby="titulo-panel">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+        <div class="flex flex-wrap items-end gap-3 mb-4">
+          <div class="mr-auto">
+            <h2 id="titulo-panel" class="text-lg font-semibold">Panel de citas</h2>
+            <p class="text-sm text-slate-600">Ordenadas por urgencia y fecha. <span id="contador-citas"></span></p>
+          </div>
+          <div>
+            <label for="filtro-especialidad" class="block text-xs font-medium text-slate-600 mb-1">Filtrar por especialidad</label>
+            <select id="filtro-especialidad"
+              class="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-600">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <button id="btn-recargar" type="button"
+            class="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-600">
+            <span aria-hidden="true">↻</span> Actualizar
+          </button>
+        </div>
+
+        <!-- Leyenda: color + texto (RNF-03) -->
+        <ul class="flex flex-wrap gap-2 mb-4 text-xs" aria-label="Leyenda de niveles de urgencia">
+          <li class="px-2 py-1 rounded-full bg-red-100 text-red-800 font-semibold">▲ Urgencia Alta</li>
+          <li class="px-2 py-1 rounded-full bg-amber-100 text-amber-900 font-semibold">● Prioritaria</li>
+          <li class="px-2 py-1 rounded-full bg-green-100 text-green-800 font-semibold">■ Consulta General</li>
+        </ul>
+
+        <div id="estado-panel" role="status" aria-live="polite"></div>
+        <ul id="lista-citas" class="grid gap-3 sm:grid-cols-2"></ul>
+        <p class="text-xs text-slate-500 mt-4">Por privacidad, el panel no muestra síntomas ni correos y el documento aparece enmascarado.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="max-w-6xl mx-auto px-4 pb-8 text-center text-xs text-slate-500">
+    MediTurno Smart — Proyecto académico UPTC · Programación II
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
