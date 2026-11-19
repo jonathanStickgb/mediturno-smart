@@ -8,7 +8,7 @@
 // ---------- Configuración ----------
 const SUPABASE_URL = 'https://icmzyztpycwoasxudkjd.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_hOg4LfjON9-kT2s862kcig_GGmzaiTK'; // clave publicable: segura en el navegador
-const N8N_WEBHOOK_URL = ''; // Pegar la Production URL del webhook (…/webhook/mediturno-cita)
+const N8N_WEBHOOK_URL = 'https://mediturno-uptc.app.n8n.cloud/webhook/mediturno-cita'; // Production URL del webhook N8N
 
 const ESPECIALIDADES = ['Medicina General', 'Pediatría', 'Cardiología', 'Dermatología', 'Ortopedia', 'Ginecología'];
 const TIMEOUT_MS = 15000;
