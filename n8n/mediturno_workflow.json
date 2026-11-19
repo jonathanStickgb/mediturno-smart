@@ -12,7 +12,7 @@
         "httpMethod": "POST",
         "path": "mediturno-cita",
         "responseMode": "responseNode",
-        "options": { "allowedOrigins": "*" }
+        "options": { "allowedOrigins": "https://mediturno-smart.vercel.app" }
       }
     },
     {
@@ -186,7 +186,7 @@
       "name": "Enviar comprobante al paciente",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
-      "position": [1580, 200],
+      "position": [1800, 200],
       "onError": "continueRegularOutput",
       "parameters": {
         "sendTo": "={{ $json.email_paciente }}",
@@ -200,7 +200,7 @@
       "name": "Responder OK",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1800, 200],
+      "position": [1580, 200],
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ { status: 'ok', clasificacion: $('Preparar comprobante').item.json.nivel_urgencia, codigo_cita: $('Preparar comprobante').item.json.codigo_cita, fecha_cita: $('Preparar comprobante').item.json.fecha_cita } }}",
@@ -229,7 +229,7 @@
         "width": 660,
         "height": 320,
         "color": 4,
-        "content": "## MediTurno Smart — Triaje automatizado\n\n1. **Webhook POST** `/mediturno-cita` recibe la solicitud del portal web.\n2. **Code**: valida los datos en el servidor y clasifica la urgencia por palabras clave en los síntomas.\n3. **IF**: si hay errores, responde 400 con la lista de errores.\n4. **Switch**: enruta por nivel (Urgencia Alta / Prioritaria / Consulta General); cada ruta define recomendaciones, color y asunto del correo.\n5. **Supabase**: inserta la cita en `citas_medicas` (genera `codigo_cita`).\n6. **Gmail**: envía el comprobante con código y recomendaciones.\n7. **Respond to Webhook**: devuelve `{status, clasificacion, codigo_cita}` al frontend."
+        "content": "## MediTurno Smart — Triaje automatizado\n\n1. **Webhook POST** `/mediturno-cita` recibe la solicitud del portal web.\n2. **Code**: valida los datos en el servidor y clasifica la urgencia por palabras clave en los síntomas.\n3. **IF**: si hay errores, responde 400 con la lista de errores.\n4. **Switch**: enruta por nivel (Urgencia Alta / Prioritaria / Consulta General); cada ruta define recomendaciones, color y asunto del correo.\n5. **Supabase**: inserta la cita en `citas_medicas` (genera `codigo_cita`).\n6. **Respond to Webhook**: devuelve `{status, clasificacion, codigo_cita}` al frontend de inmediato (RNF-02, < 3 s).\n7. **Gmail**: después de responder, envía el comprobante con código y recomendaciones (si falla, la cita ya quedó guardada).\n\nCORS: solo se aceptan llamadas desde https://mediturno-smart.vercel.app"
       }
     }
   ],
@@ -253,8 +253,8 @@
     "Ruta Prioritaria": { "main": [[{ "node": "Guardar cita en Supabase", "type": "main", "index": 0 }]] },
     "Ruta Consulta General": { "main": [[{ "node": "Guardar cita en Supabase", "type": "main", "index": 0 }]] },
     "Guardar cita en Supabase": { "main": [[{ "node": "Preparar comprobante", "type": "main", "index": 0 }]] },
-    "Preparar comprobante": { "main": [[{ "node": "Enviar comprobante al paciente", "type": "main", "index": 0 }]] },
-    "Enviar comprobante al paciente": { "main": [[{ "node": "Responder OK", "type": "main", "index": 0 }]] }
+    "Preparar comprobante": { "main": [[{ "node": "Responder OK", "type": "main", "index": 0 }]] },
+    "Responder OK": { "main": [[{ "node": "Enviar comprobante al paciente", "type": "main", "index": 0 }]] }
   },
   "settings": { "executionOrder": "v1" },
   "pinData": {}
