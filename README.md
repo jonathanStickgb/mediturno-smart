@@ -70,8 +70,8 @@ Vista `citas_publicas` (la única que lee el frontend con la `anon key`): códig
 
 ## Enlaces
 
-- Repositorio GitHub: _pendiente_
-- Producción (Vercel): _pendiente_
+- Repositorio GitHub: https://github.com/jonathanStickgb/mediturno-smart
+- Producción (Vercel): https://mediturno-smart.vercel.app
 - Proyecto Supabase: https://icmzyztpycwoasxudkjd.supabase.co
 
 ## Configuración (frontend)
@@ -79,7 +79,7 @@ Vista `citas_publicas` (la única que lee el frontend con la `anon key`): códig
 ```js
 const SUPABASE_URL = 'https://icmzyztpycwoasxudkjd.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_hOg4LfjON9-kT2s862kcig_GGmzaiTK'; // clave publicable: segura en el navegador
-const N8N_WEBHOOK_URL = ''; // pendiente (Fase 3)
+const N8N_WEBHOOK_URL = 'https://mediturno-uptc.app.n8n.cloud/webhook/mediturno-cita';
 ```
 
 > La clave **secreta** (`sb_secret_...` / `service_role`) solo se usa en N8N y **nunca** se sube al repositorio.
