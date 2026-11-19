@@ -1,6 +1,6 @@
 # MediTurno Smart — Triaje Automatizado
 
-Taller práctico **Sistemas Full-Stack y Automatización con Google Antigravity, Supabase y N8N** — UPTC,Landing Pages-desarrollo web Acelerado con Google ai Studio
+Taller práctico **Sistemas Full-Stack y Automatización con Google Antigravity, Supabase y N8N** — UPTC, Programación II (Tecnología en Programación de Sistemas Informáticos).
 
 **Caso de estudio 2 — Sector Hospitalario y Salud**
 
@@ -17,7 +17,7 @@ Portal web de agendamiento médico con persistencia en Supabase y un flujo autom
 ## Arquitectura
 
 ```
-Frontend (HTML + Tailwind + JS)  ──POST JSON──▶  N8N (Webhook → Clasificación → Supabase → Email → Respond)
+Frontend (HTML + Tailwind + JS)  ──POST JSON──▶  N8N (Webhook → Clasificación → Supabase → Respond → Email)
         │                                                     │
         └──── lectura (SDK Supabase) ──▶  Supabase (PostgreSQL + RLS)  ◀── inserción
                                                      
@@ -62,16 +62,44 @@ Vista `citas_publicas` (la única que lee el frontend con la `anon key`): códig
 - **RNF-03 — Claridad visual y accesibilidad:** Diseño responsivo (Mobile-First); los niveles de urgencia se distinguen con color **y** etiqueta de texto (no solo color), con contraste legible.
 - **RNF-04 — Manejo de errores:** Todas las operaciones de red usan `try/catch` y muestran estados visibles de *Cargando / Éxito / Error*; cero errores en consola.
 
+## Trazabilidad de requisitos
+
+| Requisito | Cómo se cumple | Evidencia |
+|---|---|---|
+| RF-01 Registro de cita | Formulario en `index.html` con nombre, documento, correo, especialidad, síntomas y fecha; `app.js` envía POST JSON al webhook de N8N. | Mensaje "¡Solicitud registrada!" con código `MT-XXXXXX`; registro en Supabase. |
+| RF-02 Validación | Validación en el cliente (`app.js`) con errores en el DOM (0 usos de `alert()`), y de nuevo en el servidor (nodo Code de N8N), que responde 400 con la lista de errores. | Captura de errores bajo los campos; respuesta `400 {status:'error', errores:[...]}`. |
+| RF-03 Filtro de especialidades | Lista cerrada en el `<select>` y en un `CHECK` de la BD; el panel filtra con `.eq('especialidad', …)`. | Captura del panel filtrado por especialidad. |
+| RF-04 Clasificación de urgencia | Nodo Code "Validar y clasificar urgencia" (palabras clave, sinónimos, negaciones y señales de riesgo) + Switch por nivel. | Ejecución en verde en N8N; casos de prueba con los 3 niveles. |
+| RF-05 Comprobante digital | Nodo Gmail con HTML: código, especialidad, fecha, nivel de urgencia, recomendaciones de la ruta y aviso de la línea 123. | Captura del correo recibido. |
+| RF-06 Panel de citas | Lectura de la vista `citas_publicas` ordenada por `prioridad` y `fecha_cita`; tarjetas con color y etiqueta por nivel. | Captura del panel con citas de los 3 niveles. |
+| RNF-01 Privacidad | RLS activo y tabla `citas_medicas` sin permisos para `anon`; la vista pública enmascara el documento y omite síntomas y correo; las claves secretas solo viven en N8N. | `GET citas_medicas` con clave pública → 401; panel muestra `****1234`. |
+| RNF-02 Disponibilidad y rendimiento | Despliegue en Vercel (HTTPS). N8N responde al frontend apenas guarda la cita y envía el correo después. | Respuesta del webhook en ~1,4 s en caliente (la primera petición tras inactividad puede tardar más por el arranque de N8N Cloud). |
+| RNF-03 Claridad visual | Diseño mobile-first con Tailwind (`sm:`/`lg:`); niveles con color **y** texto (▲ Urgencia Alta, ● Prioritaria, ■ Consulta General); `aria-live` en los mensajes. | Capturas en escritorio y móvil. |
+| RNF-04 Manejo de errores | `try/catch` en las operaciones de red, tiempo límite en el `fetch`, estados Cargando / Éxito / Error. | Consola del navegador sin errores. |
+
+## Decisiones de diseño
+
+- **No se usó la política RLS `FOR ALL USING (true)` de la guía.** Esa política permitiría a cualquiera con la clave pública leer, modificar o borrar datos clínicos, lo que viola el RNF-01. En su lugar, `citas_medicas` queda cerrada para `anon`/`authenticated` y el público solo puede hacer `SELECT` sobre la vista `citas_publicas`.
+- **Solo N8N inserta en Supabase**, con su propia credencial de servicio. El frontend envía el formulario al webhook y únicamente lee la vista. Así se evitan registros duplicados (la guía sugería insertar desde el frontend y desde N8N a la vez) y la clasificación no se puede saltar desde el navegador.
+- **Validación doble:** en el navegador para dar retroalimentación inmediata y en N8N porque el servidor no debe confiar en el cliente.
+- **Clasificador con negaciones y sinónimos:** frases como "no tengo dolor en el pecho" no se clasifican como Urgencia Alta; se reconocen sinónimos ("dolor torácico", "me falta el aire", etc.), señales de riesgo como ideación suicida, y ante la duda se elige el nivel más alto.
+- **Escape de HTML en el correo:** el nombre del paciente se escapa (`esc()`) antes de insertarlo en el HTML del comprobante para evitar inyección de código.
+- **Respuesta antes del correo:** el nodo *Respond to Webhook* va antes de Gmail para cumplir el RNF-02; si el envío del correo falla, la cita ya quedó guardada.
+- **CORS restringido:** el webhook solo acepta llamadas del navegador desde `https://mediturno-smart.vercel.app`.
+
 ## Equipo
 
-1.
-2.
-3.
+| Integrante | Usuario GitHub |
+|---|---|
+| Jonathan Stick | [jonathanStickgb](https://github.com/jonathanStickgb) |
+| Natalia Cruz Moreno | [nataliacruzmoreno](https://github.com/nataliacruzmoreno) |
+| María Medina | [mariamedina-cmd](https://github.com/mariamedina-cmd) |
 
 ## Enlaces
 
 - Repositorio GitHub: https://github.com/jonathanStickgb/mediturno-smart
 - Producción (Vercel): https://mediturno-smart.vercel.app
+- Webhook N8N (Production URL): https://mediturno-uptc.app.n8n.cloud/webhook/mediturno-cita
 - Proyecto Supabase: https://icmzyztpycwoasxudkjd.supabase.co
 
 ## Configuración (frontend)
