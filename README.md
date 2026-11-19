@@ -1,6 +1,6 @@
 # MediTurno Smart — Triaje Automatizado
 
-Taller práctico **Sistemas Full-Stack y Automatización con Google Antigravity, Supabase y N8N** — UPTC, Programación II.
+Taller práctico **Sistemas Full-Stack y Automatización con Google Antigravity, Supabase y N8N** — UPTC,Landing Pages-desarrollo web Acelerado con Google ai Studio
 
 **Caso de estudio 2 — Sector Hospitalario y Salud**
 
